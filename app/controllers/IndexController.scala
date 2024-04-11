@@ -39,8 +39,17 @@ object IndexController extends Controller{
     Ok(s"The number is $number")
   }
 
-  def action8(number: Int) = Action{
-    Ok(s"The number is $number")
+  def action8(number1: Int, number2: Int) = Action{
+    val sum = number1 + number2
+    Ok(s"$number1 + $number2 = $sum")
+  }
+
+  def action9(name: String) = Action {
+    if (name.nonEmpty) Ok(s"Hello, $name!")  else Ok("Hello, stranger!")
+  }
+
+  def action10 = Action(parse.json) { req =>
+    Ok(req.body)
   }
 }
 
