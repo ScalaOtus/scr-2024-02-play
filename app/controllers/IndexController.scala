@@ -1,7 +1,8 @@
 package controllers
 
-import play.api.libs.json.{Json, Writes}
-import play.api.mvc.{Action, Controller}
+import models.{Paging, User, UserId}
+import play.api.libs.json.{JsValue, Json, Writes}
+import play.api.mvc.{Action, AnyContent, Controller, Cookie, DiscardingCookie}
 
 case class Foo(f: String)
 
@@ -44,12 +45,62 @@ object IndexController extends Controller{
     Ok(s"$number1 + $number2 = $sum")
   }
 
-  def action9(name: String) = Action {
-    if (name.nonEmpty) Ok(s"Hello, $name!")  else Ok("Hello, stranger!")
+  def action9 = Action{
+    Ok("<h1>Hello world</h1>").as(HTML)
   }
 
-  def action10 = Action(parse.json) { req =>
-    Ok(req.body)
+  def action10 = Action{
+    Ok("<h1>Hello world</h1>")
+      .as(HTML).withHeaders(CACHE_CONTROL -> "max-age=3600", ETAG -> "xxx")
   }
+
+  def action11 = Action{
+    Ok("<h1>Hello world</h1>")
+      .as(HTML).withCookies(Cookie("user", "user@mail.com"))
+  }
+
+  def action12 = Action{ rc =>
+    Ok("Welcome!")
+      .withSession(rc.session - "connected")
+  }
+
+  def action13 = Action{ rc =>
+    rc.session.get("connected").map{ user =>
+      Ok("Hello " + user)
+    }.getOrElse(
+      Unauthorized("You are not connected")
+    )
+  }
+
+  def action14(userId: UserId) = Action{
+    Ok(userId.toString)
+  }
+
+  def action15(paging: Option[Paging]) = Action{
+    Ok(paging.toString)
+  }
+
+  // body
+
+  def action16 = Action{ rc =>
+    val body: AnyContent = rc.body
+    val textBody: Option[String] = body.asText
+    textBody.map{ str =>
+      Ok("Got " + str)
+    }.getOrElse{
+      BadRequest("Expecting text/plain request")
+    }
+  }
+
+  def action17 = Action(parse.text){ rc =>
+    val body: String = rc.body
+    Ok("Got " + body)
+  }
+
+  def action18 = Action(parse.json[User]){ rc =>
+    val body: User = rc.body
+    Ok(body.toString)
+  }
+
 }
 
